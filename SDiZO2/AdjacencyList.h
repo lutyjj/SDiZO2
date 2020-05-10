@@ -25,4 +25,5 @@ private:
 	void resetGraph(int edges, int vertices);
 	void randomUndirectedGraph(int density);
 	void randomDirectedGraph(int density);
+	void displayPath(int parent[], int j);
 };

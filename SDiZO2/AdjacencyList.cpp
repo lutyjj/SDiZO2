@@ -1,6 +1,7 @@
 #include "AdjacencyList.h"
 #include <random>
 #include <fstream>
+#include <iomanip>
 #include <string>
 
 using namespace std;
@@ -108,7 +109,7 @@ void AdjacencyList::display() {
 void AdjacencyList::prim() {
 	priority_queue<pair<int, int>, vector<pair<int, int> >, greater<pair<int, int> > >pq;
 	int* keys = new int[this->vertices];
-	int* parent = new int[this->vertices];
+	int* parents = new int[this->vertices];
 	bool* checked = new bool[this->vertices];
 
 	for (int i = 0; i < this->vertices; i++) {
@@ -129,15 +130,15 @@ void AdjacencyList::prim() {
 			int weight = i->second;
 			if (checked[v] == false && keys[v] > weight) {
 				keys[v] = weight;
+				parents[v] = u;
 				pq.push(make_pair(keys[v], v));
-				parent[v] = u;
 			}
 		}
 	}
 
 	int sum = 0;
 	for (int i = 1; i < this->vertices; ++i) {
-		cout << "Edge: " << parent[i] << " - " << i << ", weight: " << keys[i] << endl;
+		cout << "Edge: " << parents[i] << " - " << i << ", weight: " << keys[i] << endl;
 		sum += keys[i];
 	}
 	cout << "Sum: " << sum << endl;
@@ -145,34 +146,49 @@ void AdjacencyList::prim() {
 
 void AdjacencyList::dijkstra(int start) {
 	priority_queue<pair<int, int>, vector<pair<int, int> >, greater<pair<int, int> > >pq;
-	int* keys = new int[this->vertices];
+	int* distance = new int[this->vertices];
+	int* parent = new int[this->vertices];
 	bool* checked = new bool[this->vertices];
 
 	for (int i = 0; i < this->vertices; i++) {
-		keys[i] = INT_MAX;
+		distance[i] = INT_MAX;
 		checked[i] = false;
+		parent[i] = -1;
 	}
 
 	pq.push(make_pair(0, start));
-	keys[start] = 0;
+	distance[start] = 0;
 	while (!pq.empty()) {
 		int u = pq.top().second;
 		pq.pop();
 		checked[u] = true;
-
 		for (auto i = this->adjList[u].begin(); i != this->adjList[u].end(); ++i) {
 			int v = i->first;
 			int weight = i->second;
-			if (!checked[v] && keys[v] && keys[v] > keys[u] + weight) {
-				keys[v] = keys[u] + weight;
-				pq.push(make_pair(keys[v], v));
+			if (!checked[v] && distance[v] && distance[v] > distance[u] + weight) {
+				distance[v] = distance[u] + weight;
+				parent[v] = u;
+				pq.push(make_pair(distance[v], v));
 			}
 		}
 	}
 
-	for (int i = 0; i < vertices; i++)
-		cout << start << " -> " << i << " path: " << keys[i] << endl;
+	for (int i = 0; i < vertices; i++) {
+		cout << "Path " << start;
+		if (distance[i] != INT_MAX) {
+			displayPath(parent, i);
+			cout << ", weighs: " << distance[i] << endl;
+		}
+		else
+			cout << " !-> " << i << endl;
+	}
 	cout << endl;
+}
+
+void AdjacencyList::displayPath(int parents[], int v) {
+	if (parents[v] == -1) return;
+	displayPath(parents, parents[v]);
+	cout << " -> " << v;
 }
 
 void AdjacencyList::resetGraph(int edges, int vertices) {

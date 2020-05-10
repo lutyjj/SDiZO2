@@ -141,10 +141,12 @@ void AdjacencyMatrix::prim() {
 void AdjacencyMatrix::dijkstra(int start) {
 	priority_queue<pair<int, int>, vector<pair<int, int> >, greater<pair<int, int> > >pq;
 	int* distance = new int[this->vertices];
+	int* parent = new int[this->vertices];
 	bool* checked = new bool[this->vertices];
 
 	for (int i = 0; i < this->vertices; i++) {
 		distance[i] = INT_MAX;
+		parent[i] = -1;
 		checked[i] = false;
 	}
 
@@ -158,14 +160,28 @@ void AdjacencyMatrix::dijkstra(int start) {
 		for (int v = 0; v < vertices; v++) {
 			if (!checked[v] && adjMatrix[u][v]  && distance[v] > distance[u] + adjMatrix[u][v]) {
 				distance[v] = distance[u] + adjMatrix[u][v];
+				parent[v] = u;
 				pq.push(make_pair(distance[v], v));
 			}
 		}
 	}
 
-	for (int i = 0; i < vertices; i++)
-		cout << start << " -> " << i << " path: " << distance[i] << endl;
+	for (int i = 0; i < vertices; i++) {
+		cout << "Path " << start;
+		if (distance[i] != INT_MAX) {
+			displayPath(parent, i);
+			cout << ", weighs: " << distance[i] << endl;
+		}
+		else
+			cout << " !-> " << i << endl;
+	}
 	cout << endl;
+}
+
+void AdjacencyMatrix::displayPath(int parent[], int v) {
+	if (parent[v] == -1) return;
+	displayPath(parent, parent[v]);
+	cout << " -> " << v;
 }
 
 void AdjacencyMatrix::resetGraph(int edges, int vertices) {

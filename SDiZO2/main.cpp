@@ -39,9 +39,8 @@ int main() {
 }
 
 void menu_mst() {
-	int opt;
+	int opt, value;
 	string fileName;
-	int vertices, density;
 
 	Timer timer;
 	AdjacencyList* adjList = new AdjacencyList(0, false);
@@ -66,15 +65,22 @@ void menu_mst() {
 			break;
 
 		case 2:
-			cout << "Enter vertices amount and density (%): ";
-			cin >> vertices >> density;
-			adjList = new AdjacencyList(vertices, false);
-			adjMatrix = new AdjacencyMatrix(vertices, false);
-			adjList->randomGraph(density);
-			adjMatrix->randomGraph(density);
+			cout << "Enter vertices amount: ";
+			cin >> value;
+			adjList = new AdjacencyList(value, true);
+			adjMatrix = new AdjacencyMatrix(value, true);
+			cout << "Enter density (%): ";
+			cin >> value;
+			adjList->randomGraph(value);
+			adjMatrix->randomGraph(value);
 			break;
 
 		case 3:
+			adjList->display();
+			adjMatrix->display();
+			break;
+
+		case 4:
 			timer.start();
 			adjList->prim();
 			timer.stop();
@@ -85,14 +91,6 @@ void menu_mst() {
 			timer.stop();
 			timer.showTimeElapsed();
 			break;
-
-		case 4:
-			cout << "Enter source vertice: ";
-			cin >> vertices;
-			timer.start();
-			adjList->dijkstra(vertices);
-			timer.stop();
-			timer.showTimeElapsed();
 		}
 		cout << endl;
 	} while (opt != 0);
@@ -101,15 +99,15 @@ void menu_mst() {
 void menu_mst_entries() {
 	cout << "1. Read from file" << endl;
 	cout << "2. Generate random graph" << endl;
-	cout << "3. Prim's algorithm" << endl;
+	cout << "3. Show graph" << endl;
+	cout << "4. Prim's algorithm" << endl;
 	cout << "0. Back to menu" << endl;
 	cout << "Enter: ";
 }
 
 void menu_spt() {
-	int opt;
+	int opt, value;
 	string fileName;
-	int vertices, density;
 
 	Timer timer;
 	AdjacencyList* adjList = new AdjacencyList(0, true);
@@ -134,24 +132,31 @@ void menu_spt() {
 			break;
 
 		case 2:
-			cout << "Enter vertices amount and density (%): ";
-			cin >> vertices >> density;
-			adjList = new AdjacencyList(vertices, true);
-			adjMatrix = new AdjacencyMatrix(vertices, true);
-			adjList->randomGraph(density);
-			adjMatrix->randomGraph(density);
+			cout << "Enter vertices amount: ";
+			cin >> value;
+			adjList = new AdjacencyList(value, true);
+			adjMatrix = new AdjacencyMatrix(value, true);
+			cout << "Enter density (%): ";
+			cin >> value;
+			adjList->randomGraph(value);
+			adjMatrix->randomGraph(value);
 			break;
 
 		case 3:
+			adjList->display();
+			adjMatrix->display();
+			break;
+
+		case 4:
 			cout << "Enter source vertice: ";
-			cin >> vertices;
+			cin >> value;
 			timer.start();
-			adjList->dijkstra(vertices);
+			adjList->dijkstra(value);
 			timer.stop();
 			timer.showTimeElapsed();
 
 			timer.start();
-			adjMatrix->dijkstra(vertices);
+			adjMatrix->dijkstra(value);
 			timer.stop();
 			timer.showTimeElapsed();
 		}
@@ -162,7 +167,8 @@ void menu_spt() {
 void menu_spt_entries() {
 	cout << "1. Read from file" << endl;
 	cout << "2. Generate random graph" << endl;
-	cout << "3. Dijkstra's algorithm" << endl;
+	cout << "3. Show graph" << endl;
+	cout << "4. Dijkstra's algorithm" << endl;
 	cout << "0. Back to menu" << endl;
 	cout << "Enter: ";
 }
