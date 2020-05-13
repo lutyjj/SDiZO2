@@ -1,7 +1,7 @@
 #include "AdjacencyList.h"
+#include "DisjointSet.h"
 #include <random>
 #include <fstream>
-#include <iomanip>
 #include <string>
 
 using namespace std;
@@ -12,70 +12,6 @@ AdjacencyList::AdjacencyList(int vertices, bool isDirected) {
 	this->srcVertice = 0;
 	this->vertices = vertices;
 	this->isDirected = isDirected;
-}
-
-void AdjacencyList::randomGraph(int density) {
-	this->isDirected ? randomDirectedGraph(density) : randomUndirectedGraph(density);
-}
-
-void AdjacencyList::randomUndirectedGraph(int density) {
-	random_device dev;
-	mt19937 rng(dev());
-	uniform_int_distribution<mt19937::result_type> distV(0, this->vertices - 1);
-	uniform_int_distribution<mt19937::result_type> distW(1, 100);
-
-	// creating spanning tree
-	for (int i = 1; i < this->vertices; i++) {
-		int w = distW(rng);
-		addEdge(0, i, w);
-	}
-
-	int neededEdges = round(((1.0 * density / 100) * (vertices - 1) * vertices) / 2);
-	while (neededEdges > vertices - 1) {
-		int u = distV(rng);
-		int v = distV(rng);
-		int w = distW(rng);
-
-		while (u == v)
-			v = distV(rng);
-
-		if (!findEdge(u, v) && !findEdge(v, u))
-			addEdge(u, v, w);
-
-		neededEdges--;
-	}
-}
-
-void AdjacencyList::randomDirectedGraph(int density) {
-	random_device dev;
-	mt19937 rng(dev());
-	uniform_int_distribution<mt19937::result_type> distV(0, this->vertices - 1);
-	uniform_int_distribution<mt19937::result_type> distW(1, 100);
-
-	// creating spanning tree
-	for (int i = 1; i < this->vertices; i++) {
-		int w = distW(rng);
-		addEdge(0, i, w);
-	}
-
-	int neededEdges = round((1.0 * density / 100) * (vertices - 1) * vertices);
-	while (neededEdges > vertices - 1) {
-		int u = distV(rng);
-		int v = distV(rng);
-		int w = distW(rng);
-
-		while (u == v)
-			v = distV(rng);
-
-		if (findEdge(u, v)) {
-			if (!findEdge(v, u))
-				addEdge(v, u, w);
-		}
-		else
-			addEdge(u, v, w);
-
-		neededEdges--;
-	}
 }
 
 bool AdjacencyList::findEdge(int u, int v) {
@@ -91,6 +27,8 @@ void AdjacencyList::addEdge(int u, int v, int w) {
 	
 	if (!isDirected)
 		this->adjList[v].push_back(std::make_pair(u, w));
+
+	this->edges++;
 }
 
 void AdjacencyList::display() {
@@ -115,6 +53,7 @@ void AdjacencyList::prim() {
 	for (int i = 0; i < this->vertices; i++) {
 		keys[i] = INT_MAX;
 		checked[i] = false;
+		parents[i] = -1;
 	}
 
 	pq.push(make_pair(0, 0));
@@ -138,10 +77,10 @@ void AdjacencyList::prim() {
 
 	int sum = 0;
 	for (int i = 1; i < this->vertices; ++i) {
-		cout << "Edge: " << parents[i] << " - " << i << ", weight: " << keys[i] << endl;
+		cout << "edge: " << parents[i] << " - " << i << ", weight: " << keys[i] << endl;
 		sum += keys[i];
 	}
-	cout << "Sum: " << sum << endl;
+	cout << "sum: " << sum << endl;
 }
 
 void AdjacencyList::dijkstra(int start) {
@@ -152,8 +91,8 @@ void AdjacencyList::dijkstra(int start) {
 
 	for (int i = 0; i < this->vertices; i++) {
 		distance[i] = INT_MAX;
-		checked[i] = false;
 		parent[i] = -1;
+		checked[i] = false;
 	}
 
 	pq.push(make_pair(0, start));
@@ -162,6 +101,7 @@ void AdjacencyList::dijkstra(int start) {
 		int u = pq.top().second;
 		pq.pop();
 		checked[u] = true;
+
 		for (auto i = this->adjList[u].begin(); i != this->adjList[u].end(); ++i) {
 			int v = i->first;
 			int weight = i->second;
@@ -182,7 +122,6 @@ void AdjacencyList::dijkstra(int start) {
 		else
 			cout << " !-> " << i << endl;
 	}
-	cout << endl;
 }
 
 void AdjacencyList::displayPath(int parents[], int v) {
@@ -224,4 +163,86 @@ void AdjacencyList::readFromFile(string fileName) {
 	}
 	else cerr << "Error while reading file";
 	file.close();
+}
+
+bool sortByWeightM(const pair<int, pair<int,int>>& a, const pair<int, pair<int, int>>& b) {
+	return (a.second.second < b.second.second);
+}
+
+void AdjacencyList::kruskal() {
+	int sum = 0;
+	int i = 0;
+	vector<pair<int, pair<int, int>>> edges;
+	DisjointSet* ds = new DisjointSet(vertices);
+
+	while (i < vertices) {
+		for (auto u = this->adjList[i].begin(); u != this->adjList[i].end(); u++) {
+			edges.push_back(make_pair(i, *u));
+		}
+		i++;
+	}
+
+	sort(edges.begin(), edges.end(), sortByWeightM);
+
+	for (auto it = edges.begin(); it != edges.end(); it++) {
+		int u = it->first;
+		int v = it->second.first;
+
+		int uSet = ds->findSet(u);
+		int vSet = ds->findSet(v);
+
+		if (uSet != vSet) {
+			int weight = it->second.second;
+			sum += weight;
+			cout << "Edge: " << u << " - " << v << ", weighs: " << weight << endl;
+
+			ds->unionSet(uSet, vSet);
+		}
+	}
+
+	cout << "Sum: " << sum << endl;
+}
+
+void AdjacencyList::bellman(int start) {
+	int* d = new int[this->vertices];
+	int* p = new int[this->vertices];
+	for (int i = 0; i < vertices; i++) {
+		d[i] = INT_MAX;
+		p[i] = -1;
+	}
+	d[start] = 0;
+
+	for (int i = 1; i < vertices - 1; i++) {
+		for (int u = 0; u < vertices; u++) {
+			for (auto it = adjList[u].begin(); it != adjList[u].end(); it++) {
+				auto v = it->first;
+				auto w = it->second;
+				if (d[v] > d[u] + w && d[u] != INT_MAX) {
+					d[v] = d[u] + w;
+					p[v] = u;
+				}
+			}
+		}
+	}
+
+	for (int u = 0; u < vertices; u++) {
+		for (auto it = adjList[u].begin(); it != adjList[u].end(); it++) {
+			auto v = it->first;
+			auto w = it->second;
+
+			if (d[v] > d[u] + w)
+				cout << "Negative edges found." << endl;
+				return;
+		}
+	}
+
+	for (int i = 0; i < vertices; i++) {
+		cout << "Path " << start;
+		if (d[i] != INT_MAX) {
+			displayPath(p, i);
+			cout << ", weighs: " << d[i] << endl;
+		}
+		else
+			cout << " !-> " << i << endl;
+	}
 }

@@ -1,4 +1,5 @@
 #include "AdjacencyMatrix.h"
+#include "DisjointSet.h"
 #include <random>
 #include <iomanip>
 #include <fstream>
@@ -20,75 +21,13 @@ AdjacencyMatrix::AdjacencyMatrix(int vertices, bool isDirected) {
 	this->isDirected = isDirected;
 }
 
-void AdjacencyMatrix::randomGraph(int density) {
-	this->isDirected ? randomDirectedGraph(density) : randomUndirectedGraph(density);
-}
-
-void AdjacencyMatrix::randomUndirectedGraph(int density) {
-	random_device dev;
-	mt19937 rng(dev());
-	uniform_int_distribution<mt19937::result_type> distV(0, this->vertices - 1);
-	uniform_int_distribution<mt19937::result_type> distW(1, 100);
-
-	// creating spanning tree
-	for (int i = 1; i < this->vertices; i++) {
-		int w = distW(rng);
-		addEdge(0, i, w);
-	}
-
-	int neededEdges = round(((1.0 * density / 100) * (vertices - 1) * vertices) / 2);
-	while (neededEdges > vertices - 1) {
-		int u = distV(rng);
-		int v = distV(rng);
-		int w = distW(rng);
-
-		while (u == v)
-			v = distV(rng);
-
-		if (!findEdge(u, v) && !findEdge(v, u))
-			addEdge(u, v, w);
-
-		neededEdges--;
-	}
-}
-
-void AdjacencyMatrix::randomDirectedGraph(int density) {
-	random_device dev;
-	mt19937 rng(dev());
-	uniform_int_distribution<mt19937::result_type> distV(0, this->vertices - 1);
-	uniform_int_distribution<mt19937::result_type> distW(1, 100);
-
-	// creating spanning tree
-	for (int i = 1; i < this->vertices; i++) {
-		int w = distW(rng);
-		addEdge(0, i, w);
-	}
-
-	int neededEdges = round((1.0 * density / 100) * (vertices - 1) * vertices);
-	while (neededEdges > vertices - 1) {
-		int u = distV(rng);
-		int v = distV(rng);
-		int w = distW(rng);
-
-		while (u == v)
-			v = distV(rng);
-
-		if (findEdge(u, v)) {
-			if (!findEdge(v, u))
-				addEdge(v, u, w);
-		}
-		else
-			addEdge(u, v, w);
-
-		neededEdges--;
-	}
-}
-
 void AdjacencyMatrix::addEdge(int u, int v, int w) {
 	this->adjMatrix[u][v] = w;
 
 	if (!isDirected)
 		this->adjMatrix[v][u] = w;
+
+	this->edges++;
 }
 
 bool AdjacencyMatrix::findEdge(int u, int v) {
@@ -175,7 +114,6 @@ void AdjacencyMatrix::dijkstra(int start) {
 		else
 			cout << " !-> " << i << endl;
 	}
-	cout << endl;
 }
 
 void AdjacencyMatrix::displayPath(int parent[], int v) {
@@ -225,4 +163,82 @@ void AdjacencyMatrix::readFromFile(string fileName) {
 	}
 	else cerr << "Error while reading file";
 	file.close();
+}
+
+bool sortByWeight(const pair<int, pair<int, int>>& a, const pair<int, pair<int, int>>& b) {
+	return (a.second.second < b.second.second);
+}
+
+void AdjacencyMatrix::kruskal() {
+	int sum = 0;
+	int i = 0;
+	DisjointSet* ds = new DisjointSet(vertices);
+
+	vector<pair<int, pair<int, int>>> edges;
+	for (int i = 0; i < vertices; i++) {
+		for (int j = 0; j < vertices; j++) {
+			if (adjMatrix[i][j] != 0) {
+				auto u = make_pair(j, adjMatrix[i][j]);
+				edges.push_back(make_pair(i, u));
+			}
+		}
+	}
+
+	sort(edges.begin(), edges.end(), sortByWeight);
+
+	for (auto it = edges.begin(); it != edges.end(); it++) {
+		int u = it->first;
+		int v = it->second.first;
+
+		int uSet = ds->findSet(u);
+		int vSet = ds->findSet(v);
+
+		if (uSet != vSet) {
+			int weight = it->second.second;
+			sum += weight;
+			cout << "Edge: " << u << " - " << v << ", weighs: " << weight << endl;
+
+			ds->unionSet(uSet, vSet);
+		}
+	}
+
+	cout << "Sum: " << sum << endl;
+}
+
+void AdjacencyMatrix::bellman(int start) {
+	int* d = new int[this->vertices];
+	int* p = new int[this->vertices];
+	for (int i = 0; i < this->vertices; i++) {
+		d[i] = INT_MAX;
+		p[i] = -1;
+	}
+	d[start] = 0;
+	
+	for (int i = 0; i < vertices - 1; i++) {
+		for (int v = 0; v < vertices; v++) {
+			for (int u = 0; u < vertices; u++) {
+				if (adjMatrix[u][v] != 0 && d[u] != INT_MAX && d[v] > d[u] + adjMatrix[u][v]) {
+					d[v] = d[u] + adjMatrix[u][v];
+					p[v] = u;
+				}
+			}
+		}
+	}
+
+	for (int v = 0; v < vertices; v++) {
+		for (int u = 0; u < vertices; u++) {
+			if (adjMatrix[u][v] != 0 && d[v] > d[u] + adjMatrix[u][v]) {
+				cout << "Negative edges found." << endl;
+				return;
+			}
+		}
+	}
+
+	for (int i = 0; i < vertices; i++) {
+		cout << "Path " << start;
+		if (d[i] != INT_MAX) {
+			displayPath(p, i);
+			cout << ", weighs: " << d[i] << endl;
+		}
+	}
 }

@@ -10,8 +10,11 @@ struct AdjacencyMatrix {
 	void readFromFile(string fileName);
 	void display();
 	void prim();
+	void kruskal();
 	void dijkstra(int start);
-	void randomGraph(int density);
+	void bellman(int start);
+	void addEdge(int u, int v, int w);
+	bool findEdge(int u, int v);
 
 private:
 	int edges;
@@ -20,10 +23,6 @@ private:
 	bool isDirected = false;
 	int** adjMatrix;
 
-	void addEdge(int u, int v, int w);
-	bool findEdge(int u, int v);
 	void resetGraph(int edges, int vertices);
-	void randomUndirectedGraph(int density);
-	void randomDirectedGraph(int density);
 	void displayPath(int parent[], int j);
 };
