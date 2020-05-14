@@ -37,6 +37,7 @@ int main() {
 		case '3':
 			GraphTest test;
 			test.batchTest();
+			break;
 		}
 
 	} while (option != '0');
@@ -64,7 +65,11 @@ void menu_mst() {
 			cout << "Enter file name: ";
 			cin >> fileName;
 			adjList->readFromFile(fileName);
-			adjMatrix->readFromFile(fileName);
+			adjMatrix->readFromFile(fileName); 
+			cout << "Adjacency list representation: " << endl;
+			adjList->display();
+			cout << "Adjacency matrix representation: " << endl;
+			adjMatrix->display();
 			break;
 
 		case 2:
@@ -75,6 +80,10 @@ void menu_mst() {
 			utils.randomGraph(v, density, false);
 			adjList = utils.getAdjacencyList();
 			adjMatrix = utils.getAdjacencyMatrix();
+			cout << "Adjacency list representation: " << endl;
+			adjList->display();
+			cout << "Adjacency matrix representation: " << endl;
+			adjMatrix->display();
 			break;
 
 		case 3:
@@ -110,9 +119,11 @@ void menu_mst() {
 
 		case 6:
 			GraphTest test;
+			// 0 - Prim test
 			test.startTest(20, 5, 0);
 			test.startTest(60, 5, 0);
 			test.startTest(99, 5, 0);
+			// 1 - Kruskal test
 			test.startTest(20, 5, 1);
 			test.startTest(60, 5, 1);
 			test.startTest(99, 5, 1);
@@ -159,6 +170,10 @@ void menu_spt() {
 			cin >> fileName;
 			adjList->readFromFile(fileName);
 			adjMatrix->readFromFile(fileName);
+			cout << "Adjacency list representation: " << endl;
+			adjList->display();
+			cout << "Adjacency matrix representation: " << endl;
+			adjMatrix->display();
 			break;
 
 		case 2:
@@ -169,10 +184,16 @@ void menu_spt() {
 			utils.randomGraph(v, density, true);
 			adjList = utils.getAdjacencyList();
 			adjMatrix = utils.getAdjacencyMatrix();
+			cout << "Adjacency list representation: " << endl;
+			adjList->display();
+			cout << "Adjacency matrix representation: " << endl;
+			adjMatrix->display();
 			break;
 
 		case 3:
+			cout << "Adjacency list representation: " << endl;
 			adjList->display();
+			cout << "Adjacency matrix representation: " << endl;
 			adjMatrix->display();
 			break;
 
@@ -206,9 +227,11 @@ void menu_spt() {
 
 		case 6:
 			GraphTest test;
+			// 2 - Dijstra test
 			test.startTest(20, 5, 2);
 			test.startTest(60, 5, 2);
 			test.startTest(99, 5, 2);
+			// 3 - Bellman-Ford test
 			test.startTest(20, 5, 3);
 			test.startTest(60, 5, 3);
 			test.startTest(99, 5, 3);
